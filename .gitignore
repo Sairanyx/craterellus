@@ -1,0 +1,32 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Data and media (shared drive)
+data/
+raw_images/
+media/
+*.zip
+*.mp4
+*.MP4
+*.mov
+*.HEIC
+
+# Models (GitHub Releases)
+*.h5
+*.pt
+*.onnx
+models/*
+!models/.gitkeep
+
+# Training / app outputs
+runs/
+.gradio/
+*.db
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
