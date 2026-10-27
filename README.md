@@ -6,7 +6,7 @@
 
 **Who could use it:** researchers (density per km², species maps), forest-health monitoring, rare-species surveys, foragers.
 
-**What we actually build:** a student prototype. Flying outdoors needs a licence, so:
+**What we are building:** a student prototype. Flying outdoors needs a licence, so:
 - **Data:** photos and GoPro video are taken **by hand** at drone-like heights.
 - **Drone:** a **Ryze Tello** flies **indoors only**, over a terrarium, and streams live to the laptop, which shows detections in real time.
 
@@ -65,9 +65,9 @@ uv run src/tello_fly.py                              # fly the Tello (laptop on 
 ## Demo realities
 
 - **Videos are test only:** we train on photos only. The model runs on each video frame.
-- **Terrarium:** 1 m × 1 m, with real moss, needles, mushrooms and lookalikes, lit by bright LEDs. Press the moss down so the propeller wind doesn't move it.
+- **Terrarium:** 1 m × 1 m, with real moss, needles, mushrooms and lookalikes Might have to press the moss down so the propeller wind doesn't move it.
 - **Tello camera:** worse than a phone and points forward. Fly back and up, and train with blur and noise. Test early.
-- **Mushrooms for demo day:** pick fresh or buy fresh (not frozen or dried). Record a backup flight in late November.
+- **Mushrooms for demo day:** we pick fresh or buy fresh. We should record a backup flight in late November.
 
 ## Saving finds
 
@@ -77,4 +77,4 @@ Each live detection is saved as one SQLite row; the snapshot is stored as a file
 CREATE TABLE finds (id INTEGER PRIMARY KEY, time TEXT, lat REAL, lon REAL,
                     confidence REAL, image_path TEXT);
 ```
-Indoors there's no GPS, so the demo uses a fixed position. A real drone would use its own GPS.
+Indoors there's no GPS, so the demo uses a fixed position. A real drone would use its own GPS. So we don't make a map for now with where it finds mushrooms. Maybe if we have time.
