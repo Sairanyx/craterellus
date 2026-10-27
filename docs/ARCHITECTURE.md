@@ -32,12 +32,12 @@ Taken by hand on 25 Oct 2026, with 2 iPhones. Originals are on the shared drive,
 
 **Videos (test only):**
 - **GoPro:** 4 clips, 2.7K at 60 fps (2 with mushrooms, 2 without).
-- **Tello:** 2 clips, 720p at 30 fps.
+- **Tello:** 2 clips for now just tests, 720p at 30 fps
 
-**Watch out:**
+**To watch out for:**
 - **Mushrooms are often tiny:** handled with tiles and SAHI.
-- **Many shots repeat the same patch:** split by patch.
-- **Mixed orientation:** apply the EXIF rotation.
+- **Many shots repeat the same patch:** I think we have to split by patch.
+- **Mixed orientation:** apply the EXIF rotation. "no clue what this is"
 
 ## 3. Preprocessing
 
@@ -67,7 +67,7 @@ The same simple CNN throughout: 4× [Conv → ReLU → MaxPool] (32-64-128-128) 
 
 - **Model:** `yolov5su.pt` fine-tuned. The live demo uses `yolov5nu`.
 - **Config:** `configs/data.yaml`, one class: `suppilovahvero`.
-- **Training:** `imgsz=960`, `batch=-1` (RTX 4050), `epochs=100`, `patience=20`.
+- **Training:** `imgsz=960`, `batch=-1`,  `epochs=100`, `patience=20`.
 - **Outputs:** mAP@0.5, P/R, prediction images on the test set.
 - **Extras:** SAHI (with vs without), ByteTrack count on GoPro video, and CNN vs YOLO on the same test photos.
 
@@ -86,12 +86,25 @@ The same simple CNN throughout: 4× [Conv → ReLU → MaxPool] (32-64-128-128) 
 ## 7. Repo
 
 ```
-app/panel.py        Gradio
-configs/data.yaml   YOLO config
-docs/               ARCHITECTURE.md, drone.md
-src/                preprocess, split, make_tiles, cnn_train, yolo_train, gradcam, tello_fly
-models/ results/ report/
-pyproject.toml uv.lock
+craterellus/
+├── app/
+│   └── panel.py          Gradio app
+├── configs/
+│   └── data.yaml         YOLO config
+├── docs/                 ARCHITECTURE.md, drone.md
+├── src/
+│   ├── preprocess.py     HEIC → JPG, metadata
+│   ├── split.py          train/val/test by patch
+│   ├── make_tiles.py     tiles for the CNN
+│   ├── cnn_train.ipynb   M2
+│   ├── yolo_train.ipynb  M3
+│   ├── gradcam.py        CNN heatmaps
+│   └── tello_fly.py      fly the drone
+├── models/               trained weights (not in git)
+├── results/              plots, tables, predictions
+├── report/
+├── pyproject.toml        packages (uv)
+└── uv.lock               exact versions (uv)
 ```
 
 ## 8. Timeline
