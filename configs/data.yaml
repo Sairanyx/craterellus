@@ -1,0 +1,6 @@
+path: ../data/yolo   # set to your local dataset folder (made by src/split.py)
+train: train/images
+val: val/images
+test: test/images
+names:
+  0: suppilovahvero

@@ -1,0 +1,3 @@
+experiment,epochs_run,train_acc,val_acc,gap,test_acc,test_precision,test_recall
+baseline_patches,30,1.0,0.891,0.109,0.893,0.827,0.858
+final_patches,17,0.849,0.836,0.013,0.864,0.75,0.889

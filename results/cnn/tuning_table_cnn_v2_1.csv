@@ -1,0 +1,2 @@
+experiment,epochs_run,train_acc,val_acc,gap,test_acc,test_precision,test_recall
+final_patches,53,0.91,0.875,0.035,0.936,0.892,0.92
