@@ -1,26 +1,27 @@
 # Python
 .venv/
-venv/
 __pycache__/
 *.pyc
 
-# Data and media (shared drive)
-data/
-raw_images/
-recordings/
-media/
+# Data and models that are stored and pulled from R2 object storage and never in git (folders kept with .gitkeep)
+dataset/raw/**
+dataset/clean/**
+models/**
+!dataset/raw/**/
+!dataset/clean/**/
+!models/**/
+!**/.gitkeep
+
+# Big files anywhere else
 *.zip
 *.mp4
 *.MP4
 *.mov
 *.HEIC
-
-# Models (GitHub Releases)
+*.heic
 *.h5
 *.pt
 *.onnx
-models/*
-!models/.gitkeep
 
 # Training / app outputs
 runs/
@@ -31,4 +32,6 @@ runs/
 .vscode/
 .idea/
 .DS_Store
+
+# Secrets
 .env

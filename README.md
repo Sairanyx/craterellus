@@ -1,80 +1,111 @@
 # Craterellus 🍄
 
-**The idea:** a drone flies over the forest, finds **suppilovahvero** (*Craterellus tubaeformis*), and saves where and when, building a **map of where mushrooms grow**.
+A drone that finds **suppilovahvero** (*Craterellus tubaeformis*) on the forest floor, without trampling it.
 
-**Why a drone:** searching on foot tramples the forest floor. A drone touches nothing and covers more ground.
+**What we build:**
+- **CNN:** says whether a photo has a mushroom.
+- **YOLO:** says whether there's a mushroom, and draws a box around each one.
+- **Demo:** a Gradio app runs both models on photos and video, and YOLO runs live on a Ryze Tello flying over a 1 m × 1 m terrarium.
 
-**Who could use it:** researchers (density per km², species maps), forest-health monitoring, rare-species surveys, foragers.
-
-**What we are building:** a student prototype. Flying outdoors needs a licence, so:
-- **Data:** photos and GoPro video are taken **by hand** at drone-like heights.
-- **Drone:** a **Ryze Tello** flies **indoors only**, over a terrarium, and streams live to the laptop, which shows detections in real time.
-
-More detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/drone.md](docs/drone.md).
-
-## How it works
-
-```mermaid
-flowchart LR
-    A[Forest photos<br/>by hand] --> B[Pipeline<br/>clean, annotate, split]
-    B --> C[CNN<br/>mushroom yes/no]
-    B --> D[YOLO<br/>where in the image]
-    C --> E[Analytics]
-    D --> E
-    G[GoPro video] --> D
-    H[Tello drone<br/>indoors] -->|live video| D
-    D -->|mushroom found| I[(SQLite<br/>finds)]
-    I --> F[Gradio app]
-    E --> F
-```
-
-## Stack
-
-| What | Tool |
-|---|---|
-| Language | Python 3.12 + uv |
-| Annotation | CVAT |
-| CNN | TensorFlow / Keras |
-| Detection | Ultralytics YOLOv5 + ByteTrack + SAHI |
-| Drone | Ryze Tello + `djitellopy` |
-| Finds log | SQLite |
-| App | Gradio |
+Who does what and some ideas on what to use: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Setup
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh     # install uv
 git clone https://github.com/Sairanyx/craterellus.git
-cd craterellus && uv sync                            # install everything
-uv run app/panel.py                                  # Gradio app
-uv run src/tello_fly.py                              # fly the Tello (laptop on Tello Wi-Fi)
+cd craterellus
+uv sync                    # install packages (Python 3.12)
+cp .env.example .env       # then paste in the R2 keys (sent privately)
 ```
 - **New package:** `uv add <name>`, then commit `pyproject.toml` and `uv.lock`.
-- **Data and models:** these are **not in git**. They're on the shared drive.
 
-## Steps
+## Data
 
-1. ✅ **Collect:** 397 photos from 2 iPhones (~350 with mushrooms, ~48 without), plus 4 GoPro videos.
-2. **Pipeline (M1):** HEIC → JPG, boxes in CVAT, split by patch.
-3. **CNN (M2):** baseline on whole photos → high bias (mushrooms too small) → **tiles** → Dropout/L2 → callbacks → test Acc/P/R.
-4. **YOLO (M3):** fine-tune YOLOv5 → boxes on test photos.
-5. **Extras:** Grad-CAM, SAHI, ByteTrack mushroom count.
-6. **Demos:** test photos → GoPro video → live Tello over the terrarium.
-7. **Gradio app:** one tab per demo, plus metrics and finds.
+Photos, videos and trained models are in **Cloudflare R2**, not in git.
+**R2 object storage** is Cloudflare's online storage for big files: a shared drive that scripts can read from and write to with one command.
 
-## Demo realities
-
-- **Videos are test only:** we train on photos only. The model runs on each video frame.
-- **Terrarium:** 1 m × 1 m, with real moss, needles, mushrooms and lookalikes Might have to press the moss down so the propeller wind doesn't move it.
-- **Tello camera:** worse than a phone and points forward. Fly back and up, and train with blur and noise. Test early.
-- **Mushrooms for demo day:** we pick fresh or buy fresh. We should record a backup flight in late November.
-
-## Saving finds
-
-Each live detection is saved as one SQLite row; the snapshot is stored as a file.
-
-```sql
-CREATE TABLE finds (id INTEGER PRIMARY KEY, time TEXT, lat REAL, lon REAL,
-                    confidence REAL, image_path TEXT);
+### The `craterellus` bucket
 ```
-Indoors there's no GPS, so the demo uses a fixed position. A real drone would use its own GPS. So we don't make a map for now with where it finds mushrooms. Maybe if we have time.
+craterellus/
+├── raw/                    originals as taken (locked: can't be changed or deleted)
+│   ├── photos_eddie/
+│   ├── photos_benjamin/
+│   ├── photos_drone/
+│   ├── videos_drone/
+│   ├── videos_mushrooms/
+│   └── videos_no_mushrooms/
+├── clean/                  pipeline output, what everyone works from
+│   ├── photos/
+│   │   ├── mushroom/
+│   │   └── no_mushroom/
+│   ├── videos/
+│   │   ├── mushroom/
+│   │   └── no_mushroom/
+│   └── catalog.csv         one row per file: source, time, GPS, label
+└── models/                 trained models
+    ├── cnn/                .h5
+    └── yolo/               .pt
+```
+- **Labels** (YOLO `.txt` boxes) are small, so they live in **git**, in `dataset/labels/`.
+- **Empty folders** hold a 0-byte `.keep` file, because R2 can't have empty folders, so we can delete these once we have some data there in clean and models folders.
+
+### Connect (once)
+Install rclone first:
+
+Install rclone first (Ubuntu):
+```bash
+sudo -v ; curl https://rclone.org/install.sh | sudo bash
+rclone version          # needs 1.59 or newer for Cloudflare
+```
+
+Then:
+```bash
+set -a; source .env; set +a
+rclone config create r2 s3 provider=Cloudflare \
+  access_key_id="$R2_ACCESS_KEY_ID" secret_access_key="$R2_SECRET_ACCESS_KEY" \
+  endpoint="$R2_ENDPOINT" acl=private no_check_bucket=true
+rclone lsf r2:craterellus       # should list raw/ clean/ models/
+```
+
+### Download and upload
+The local `dataset/` and `models/` folders mirror the bucket.
+- **Run from the repo root** (`Craterellus/`), so files land in the right place.
+- **`rclone copy FROM TO`:** paths starting with `r2:` are the bucket, the rest are on your local.
+  - `r2:... dataset/...` downloads.
+  - `dataset/... r2:...` uploads.
+
+```bash
+rclone copy r2:craterellus/clean  dataset/clean --exclude ".keep" -P   # photos + videos
+rclone copy r2:craterellus/models models        --exclude ".keep" -P   # trained models
+rclone copy r2:craterellus/raw    dataset/raw   -P                     # originals (pipeline only so Benjamin needs this only)
+
+rclone copy dataset/clean r2:craterellus/clean --exclude ".gitkeep" -P   # upload
+```
+- **Always `copy`, never `sync` or `delete`:** `sync` deletes files that aren't on your side.
+- **Don't overwrite:** new files get new names.
+
+## Repo
+
+```
+craterellus/
+├── src/
+│   ├── pipeline/      Benjamin: photo, video, live pipelines + catalog
+│   ├── cnn/           Eddie
+│   └── yolo/          Sasha
+├── app/               demo: Gradio app, Tello
+├── dataset/
+│   ├── raw/           ← from R2 (not in git)
+│   ├── clean/         ← from R2 (not in git)
+│   └── labels/        Zoi: YOLO .txt boxes (in git)
+├── models/            ← from R2: cnn/, yolo/ (not in git)
+├── configs/           YOLO data.yaml
+├── results/           graphs, tables
+├── report/            report + presentation
+└── docs/              ARCHITECTURE.md, drone.md
+```
+
+## Branches
+
+- `main`: finished work, changed only through a PR.
+- `development`: features are merged here.
+- `feature/*`: one branch per part.
