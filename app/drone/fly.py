@@ -8,6 +8,9 @@ Make sure you have the controller close by, you are familiar with the controls
 (see docs/drone.md) and there is space!
 """
 
+import os
+os.environ["YOLO_OFFLINE"] = "1"    # Tello Wi-Fi has no internet: skip Ultralytics' online check
+
 import time
 from pathlib import Path
 
