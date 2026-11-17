@@ -48,6 +48,7 @@ flowchart LR
   - `models/`: trained models.
 - **Locally:** `dataset/` and `models/` mirror the bucket (see the README).
 - **Git:** code, labels (`dataset/labels/`), the split (`dataset/split.csv`), results and docs.
+- **Now in `clean/`:** 349 photos with mushrooms, 50 without. The task suggests about 100 / 100, so ~50 more empty photos (ideally tricky ones: other mushrooms, leaves, cones) would help, especially the CNN. Not sure if we should. See how time goes.
 
 ## Roles
 
@@ -115,14 +116,16 @@ No clue for some of them, these are just suggestions of course.
 
 ## Zoi: labelling + terrarium
 
-**Goal:** every mushroom in `clean/photos/mushroom/` has a correct box, and the terrarium is ready for the demo.
+**Goal:** every photo in `clean/photos/` has a label file with a correct box for each mushroom, and the terrarium is ready for the demo.
 
-**Labelling**
-- One label: `suppilovahvero`.
-- One tight box per mushroom, including half-hidden ones and each mushroom in a cluster.
-- Export in **YOLO format** → `dataset/labels/`, one `.txt` per photo with the same name.
-- `no_mushroom` photos need no boxes.
-- Write the box rules in `docs/labelling.md`, so everyone can read how you did it, or for project showcase more like.
+**Labelling** (suggestions, change what works better for you)
+- **Target:** every mushroom in our photos is a suppilovahvero, so every mushroom gets a box, any visible part (cap, stem, half-hidden). Leaves and cones get no box.
+- **One label** in CVAT: `suppilovahvero` (class 0 in the YOLO files).
+- **Shared work:** the whole group can help. In CVAT the photos can be split into several jobs (e.g. 80 photos each), one per person if you Zoi think it's too much. 
+- **All 399 photos in CVAT**, including `no_mushroom/`: those just get no boxes, and the export then writes an empty `.txt` for them, which the task recommends.
+- **One tight box per mushroom**, including each one in a cluster.
+- **Export YOLO 1.1** → `dataset/labels/`, one `.txt` per photo with the same name.
+- **Short `docs/labelling.md`:** the target definition, how the photos were taken and how the boxes were drawn (it's part of the deliverable).
 
 **Terrarium**
 - 1 m × 1 m, with moss, needles, leaves, cones and bark: forest floor plus look-alikes.
@@ -148,6 +151,8 @@ No clue for some of them, these are just suggestions of course.
 - **By patch:** photos taken close in time and place go in the same set, so near-identical shots never end up in both train and test. Use time + GPS from `catalog.csv`.
 - **About 70 / 15 / 15**, with mushroom and no_mushroom photos split separately, so every set has both.
 - **Decide:** drone footage as test only, or some of it in training.
+- **Also write:** the number of mushroom / empty photos in each split (part of the deliverable).
+- **CNN folders:** `Target_Absent/` and `Target_Present/` per split, the names the task uses.
 
 **Tools:** `pandas`, `scikit-learn` (`GroupShuffleSplit`).
 
@@ -171,16 +176,16 @@ No clue for some of them, these are just suggestions of course.
 - **Control:** EarlyStopping + ModelCheckpoint.
 - **Imbalance:** class weights.
 - **Tuning table:** every run (what changed, train / val / test scores, lesson learned), ending with the best combination as the final model.
-- **Test:** accuracy, precision, recall, confusion matrix.
-- **Save:** best `.h5` → R2 `models/cnn/`; curves + table → `results/cnn/`.
+- **Test:** accuracy, precision, recall, F1, confusion matrix, and a few words on the false positives and negatives.
+- **Save:** best `.keras` → R2 `models/cnn/`; curves + table → `results/cnn/`.
 
-**Done when:** the tuning table and test scores are in `results/cnn/` and the `.h5` is in R2.
+**Done when:** the tuning table and test scores are in `results/cnn/` and the `.keras` is in R2.
 
 **Tools:** `keras` (on the PyTorch backend for the GPU), `tensorflow` (data loading), `matplotlib`, `scikit-learn` (metrics).
 
 ## Sasha: YOLO
 
-**Goal:** a fine-tuned YOLO that finds and boxes suppilovahvero.
+**Goal:** a fine-tuned YOLO that finds and boxes suppilovahvero. Will give you access to cloud GPU and VM so just remind me.
 
 - **Data:** YOLO folders from `split.csv` + `clean/photos/` + `dataset/labels/`, and `configs/data.yaml`.
 - **Background:** keep the no_mushroom photos as background images.
@@ -190,7 +195,8 @@ No clue for some of them, these are just suggestions of course.
   - newer models: YOLOv8, YOLO11
   - My laptop GPU (RTX 4050, 6 GB) fits up to about `m` at image size 960 apparently, so yours can do even better I think.
 - **Image size:** large (e.g. 960), since mushrooms are small.
-- **Test:** mAP50, mAP50-95, precision, recall, confusion matrix, example predictions.
+- **Test:** mAP50, mAP50-95, precision, recall, confusion matrix.
+- **Examples:** good detections and failures (missed mushrooms, wrong boxes), with confidence, plus a small inference script.
 - **Live demo:** the best model runs on the laptop GPU; the Tello only streams the video. Check that it keeps up with the stream.
 - **Save:** `best.pt` → R2 `models/yolo/`; plots + metrics → `results/yolo/`.
 
