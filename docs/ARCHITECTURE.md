@@ -187,8 +187,9 @@ No clue for some of them, these are just suggestions of course.
 
 **Goal:** a fine-tuned YOLO that finds and boxes suppilovahvero. Will give you access to cloud GPU and VM so just remind me.
 
-- **Data:** YOLO folders from `split.csv` + `clean/photos/` + `dataset/labels/`, and `configs/data.yaml`.
-- **Background:** keep the no_mushroom photos as background images.
+- **Data (ready):** `uv run src/split/build_folders.py` builds `dataset/yolo/` (images + labels for train/val/test) and `dataset/yolo/data.yaml`. Train with `data="dataset/yolo/data.yaml"`.
+- **Split:** 283 / 57 / 57 photos, by 3 m spots, the same photos as the CNN. Keep it as it is.
+- **Background:** the empty photos are already in, with empty label files.
 - **Model:** YOLOv5 pretrained on COCO, fine-tuned to 1 class (required).
 - **Try more:** compare in a results table:
   - bigger YOLOv5 sizes: `yolov5su` → `yolov5mu`
