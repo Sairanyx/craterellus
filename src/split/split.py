@@ -9,12 +9,7 @@ import pandas as pd
 import math
 from sklearn.cluster import DBSCAN
 from sklearn.model_selection import StratifiedGroupKFold
-
-
-def section(title):
-    print()
-    print(title)
-    print("-" * 40)
+from nice_printing import section
 
 
 # Loading, sorting reindexing and printing to check
