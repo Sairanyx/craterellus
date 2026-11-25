@@ -59,4 +59,17 @@ section("2. Folders built")
 print("dataset/yolo/ and dataset/cnn/")
 
 
+# data.yaml for YOLO is below: where the images are and what class 0 is called
+# (YOLO finds the labels itself in labels/ next to images/)
 
+yaml_text = f"""path: {YOLO.resolve()}
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: suppilovahvero
+"""
+(YOLO / "data.yaml").write_text(yaml_text)
+
+section("3. data.yaml")
+print(yaml_text)
