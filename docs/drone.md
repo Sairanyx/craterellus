@@ -1,43 +1,36 @@
 # Drone
 
-**Ryze Tello (TLW004).** It flies indoors only, over the terrarium.
-
-## Camera
-
-- **Direction:** points forward, can't tilt down. Fly back and up to see the terrarium.
-- **Live stream:** 960×720, H.264, over Wi-Fi.
-- **Phone app recordings:** 1280×720, 30 fps MP4.
-
-## Two ways to use it
-
-| | Phone (Tello app) | Laptop (live demo) |
-|---|---|---|
-| Control | the app | keyboard or PS5 controller (Python) |
-| Video | saved on the phone | streamed live to the laptop → YOLO → Gradio |
-| Use for | test flights, recordings | the live demo |
-
-The phone and the laptop can't connect to the drone at the same time.
-
-## Live demo setup
+**Ryze Tello (TLW004)** and for this project was only flown indoors in safe open classroom environment. No licence needed indoors and drone is under 120grams in weigth. Flawn for testing and also for demo day over the terrarium with a PS5 controller. The laptop runs YOLO on the live video.
 
 ```
-Controller ──Bluetooth──► Laptop ──Wi-Fi──► Tello
-                            ▲                 │
-                            └── live video ───┘
-                                → YOLO (laptop GPU) → Gradio
+PS5 controller ──Bluetooth──► Laptop ──Wi-Fi──► Tello
+                                ▲                 │
+                                └── live video ───┘
 ```
 
-1. Connect the laptop to the **TELLO-XXXXXX** Wi-Fi.
-2. **Linux firewall:** allow the Tello's packets, or the video and status never arrive:
+## Fly
+
+1. **Controller:** hold **PS + Create (small button top left)** until the light flashes, then connect to it in the laptop's Bluetooth settings.
+2. **Drone:** add a battery that has charge and turn the Tello on and connect the laptop to its **TELLO-XXXXXX** Wi-Fi.
+3. **Fly** (from the repo root):
    ```bash
-   sudo ufw allow from 192.168.10.1 to any port 8890,11111 proto udp
+   uv run app/drone/fly.py
    ```
-3. A Python script (`djitellopy`) flies the drone and receives the stream.
-4. YOLO runs on each frame on the laptop, and Gradio shows the result.
 
-## Safety
+| Control | Action |
+|---|---|
+| ✕ | take off |
+| ○ | land |
+| Options | **emergency: motors off so it will crash so be careful** |
+| Left stick | forward / back, left / right |
+| Right stick | up / down, turn |
 
-- **Battery:** land below 20%. The Tello also lands by itself when the battery runs low.
-- **Emergency key:** have one that stops the motors.
-- **Terrarium:** press the moss down, so the propeller wind doesn't move it.
-- **Backup:** record a flight in advance, in case the live demo fails.
+**Before flying:** battery above 20%, enough space, and know where land button is, so O or worst case press Option button but drone might break.
+
+## If it doesn't connect
+
+- **Laptop jumps back to another Wi-Fi:** turn off auto-connect for your other networks.
+- **No answer from the drone on Linux:** try allowing it through the firewall, ip address below is universal for all Tello in production:
+  ```bash
+  sudo ufw allow from 192.168.10.1 to any port 8890,11111 proto udp
+  ```

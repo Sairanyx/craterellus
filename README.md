@@ -43,7 +43,7 @@ craterellus/
 │   │   └── no_mushroom/
 │   └── catalog.csv         one row per file: source, time, GPS, label
 └── models/                 trained models
-    ├── cnn/                .h5
+    ├── cnn/                .keras
     └── yolo/               .pt
 ```
 - **Labels** (YOLO `.txt` boxes) are small, so they live in **git**, in `dataset/labels/`.
