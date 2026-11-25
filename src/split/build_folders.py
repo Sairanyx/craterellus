@@ -13,7 +13,7 @@ from nice_printing import section
 
 # Which photo goes where
 
-LABELS = "dataset/consolidated/labels"            # the YOLO .txt files
+LABELS = "dataset/labels"            # the YOLO .txt files
 YOLO = Path("dataset/yolo")
 CNN = Path("dataset/cnn")
 

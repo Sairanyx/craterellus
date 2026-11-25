@@ -21,7 +21,7 @@ must be clarified before full annotation.
 
 ## Export
 
-Export YOLO detection TXT labels to dataset/consolidated/labels/.
+Export YOLO detection TXT labels to dataset/labels/.
 Each label file must match its image filename stem.
 
 Each object is represented by one line:
@@ -108,8 +108,8 @@ Each target-absent image has an empty YOLO TXT file.
 
 ### Final annotation files
 
-- `dataset/consolidated/labels/`: 399 YOLO TXT files.
-- `dataset/consolidated/cnn_labels.csv`: 399 image-level classification labels.
+- `dataset/labels/`: 399 YOLO TXT files.
+- `dataset/cnn_labels.csv`: 399 image-level classification labels.
 - `dataset/label_status.csv`: annotation review status and box counts.
 
 CNN classification labels:
@@ -164,11 +164,11 @@ structure and split generation remain separate tasks.
    `craterellus/clean/photos/no_mushroom/`.
 
 2. Match each JPG with its YOLO TXT file in
-   `dataset/consolidated/labels/` using the same filename stem.
+   `dataset/labels/` using the same filename stem.
    Empty TXT files are intentional for target-absent images.
 
 3. For CNN classification, use
-   `dataset/consolidated/cnn_labels.csv`.
+   `dataset/cnn_labels.csv`.
    The CSV columns are `filename` and `label`, where 1 means
    Target_Present and 0 means Target_Absent.
 
