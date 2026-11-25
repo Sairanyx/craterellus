@@ -3,7 +3,7 @@ import math
 
 # Folder containing the exported YOLO label files.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-labels_dir = PROJECT_ROOT / "dataset" / "consolidated" / "labels"
+labels_dir = PROJECT_ROOT / "dataset" / "labels"
 
 # Stop if the labels folder does not exist.
 if not labels_dir.is_dir():
