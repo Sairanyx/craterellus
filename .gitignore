@@ -12,6 +12,7 @@ models/**
 !models/**/
 dataset/yolo/
 dataset/cnn/
+results/videos/
 !**/.gitkeep
 
 # Big files anywhere else
