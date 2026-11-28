@@ -1,0 +1,2 @@
+run,what_changed,train_acc,val_acc,gap,val_precision,val_recall,val_f1,epochs,learnings
+run1_baseline,whole photos 224. plain baseline,1.0,0.912,0.088,0.909,1.0,0.952,30,"Overfits (train 1.000 vs val 0.912, val_loss 0.20->0.82); predicts mushroom for 5/7 empty photos."
