@@ -32,6 +32,10 @@ else:
 drone.connect()
 drone.start_video()
 
+cv2.namedWindow("Tello live", cv2.WINDOW_NORMAL)
+cv2.setWindowProperty("Tello live", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+
 try:
     while True:
         presses = controller.new_presses()

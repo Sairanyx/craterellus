@@ -2,18 +2,22 @@
 Craterellus demo app to show: photo, video and live drone using our custom
 made CNN and YOLO.
 """
+
 import random
+import subprocess
 from pathlib import Path
 
+import cv2
 import gradio as gr
 from ultralytics import YOLO
-import cv2
 
 
 LOGO = Path("assets/name_mushroom.svg").read_text()
 TEST_PHOTOS = Path("dataset/yolo/images/test")
 YOLO_MODEL = Path ("models/yolo/best.pt")
 TEST_VIDEOS = Path ("dataset/clean/videos")
+OUT_VIDEOS = Path("results/videos")
+CHUNK_SECONDS = 2                     
 
 def process_photo(image, mode):
     if image is None:
@@ -39,16 +43,44 @@ def pick_video():
     return str(random.choice(videos))
 
 
+def start_chunk(path, fps):
+    return subprocess.Popen(
+        ["ffmpeg", "-y", "-loglevel", "error",
+         "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", "2560x720", "-r", str(fps), "-i", "-",
+         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20", "-pix_fmt", "yuv420p", str(path)],
+        stdin=subprocess.PIPE)
+
+
 def process_video(path):
     if path is None or yolo is None:
         return
-    video = cv2.VideoCapture(path)
-    ok, frame = video.read()
-    while ok:
-        results = yolo(frame, imgsz=960, verbose=False)
-        yield results[0].plot()[:, :, ::-1]
-        ok, frame = video.read()
-    video.release()
+    OUT_VIDEOS.mkdir(parents=True, exist_ok=True)
+    for old in OUT_VIDEOS.glob("chunk_*.ts"):        # remove the pieces from the last video
+        old.unlink()
+    fps = cv2.VideoCapture(path).get(cv2.CAP_PROP_FPS) / 2
+    results = yolo.predict(source=path, stream=True, vid_stride=2, imgsz=960, verbose=False)
+
+    for i, r in enumerate(results):
+        if i % int(fps * CHUNK_SECONDS) == 0:                 # every 2 s: start a new piece
+            if i > 0:
+                encoder.stdin.close(); encoder.wait(); yield str(piece)
+            piece = OUT_VIDEOS / f"chunk_{i}.ts"
+            encoder = start_chunk(piece, fps)
+        both = cv2.hconcat([cv2.resize(r.orig_img, (1280, 720)), cv2.resize(r.plot(), (1280, 720))])
+        cv2.line(both, (1280, 0), (1280, 720), (200, 220, 232), 6) 
+        encoder.stdin.write(both.tobytes())
+
+    encoder.stdin.close(); encoder.wait(); yield str(piece)   # the last piece
+
+
+def play_test_video():
+    videos = list(TEST_VIDEOS.rglob("*.mp4"))
+    yield from process_video(str(random.choice(videos)))
+
+
+def launch_drone():
+    subprocess.Popen(["uv", "run", "app/drone/fly.py"])     # opens the live drone window
+    return "Drone window opened: fly with the PS5 controller, close the window to stop."
 
 
 if YOLO_MODEL.exists():
@@ -73,17 +105,17 @@ with gr.Blocks(title="Craterellus") as app:
         mode.change(process_photo, [photo, mode], result)
         shuffle.click(shuffle_photo, None, photo)
     with gr.Tab("Video"):
-        pick = gr.Button("Load test video")
         with gr.Row():
-            video = gr.Video(label="Video")
-            video_result = gr.Image(label="YOLO")
-        pick.click(pick_video, None, video)
-        video.change(process_video, video, video_result)
+            pick = gr.Button("Load test video")
+            upload = gr.Video(label="Or upload your own", height=260, width=400)
+        result_video = gr.Video(label="Original  |  YOLO", streaming=True, autoplay=True)
+        pick.click(play_test_video, None, result_video)
+        upload.upload(process_video, upload, result_video)
 
     with gr.Tab("Stream"):
-        start = gr.Button("Start stream")
-        stream = gr.Image(label="Drone + YOLO")
-
+        launch = gr.Button("Launch drone")
+        status = gr.Markdown()
+        launch.click(launch_drone, None, status)
 
 JADE_BG = "#111c18"        # page background
 JADE_BLOCK = "#16241e"     # boxes
