@@ -13,6 +13,7 @@ models/**
 dataset/yolo/
 dataset/cnn/
 results/videos/
+*.keras
 !**/.gitkeep
 
 # Big files anywhere else
